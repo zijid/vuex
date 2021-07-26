@@ -148,3 +148,34 @@ let module={
         this.$store.commit("模块名/方法名")
         this.$store.getters["模块名/方法名"]
 }
+```
+生成器map
+-
+快速生成Vue对应的方法、计算属性和变量
+
+```javascript
+    let mapState = Vuex.mapState;
+    let mapGetters = Vuex.mapGetters;
+    let mapActions = Vuex.mapActions;
+    let mapMutations = Vuex.mapMutations;
+    computed: {//设置mapState的两种方式
+        ...mapState({//对象的三种设置方式
+            使用时名字:state => state.count,//1.返回 state的变量
+            名字: 'state变量',//2.使用字符串名字直接使用
+
+            名字(state) {//3.使用方法的方式
+                return state.count + 1
+            }
+        }),
+        ...mapState({["state变量"]),//使用数组方式,直接传入state变量，使用时名字和state变量名字一样
+        // ...mapState('A', {带命名空间的绑定
+        // 	a: state => state.a,
+        // 	b: state => state.b
+        // }),
+    }
+
+    //赋值给Vue的方式也可以是
+    computed:mapState({})//这种方式就无法再定义本身的属性了
+    
+    //各种使用方式都是一样的就不复制了
+```

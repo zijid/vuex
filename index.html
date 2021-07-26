@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+
+	<script src="https://unpkg.com/vue"></script>
+	<script src="https://unpkg.com/vuex"></script>
+</head>
+
+<body>
+	<div id="app" @click="increment">Aget:{{Aget}}A:{{A}}</div>
+	<script>
+		let moduleA={
+			namespaced: true,
+			state:{
+				A:"A"
+			},
+			mutations: {
+				A (state) {
+				// 这里的 `state` 对象是模块的局部状态
+				state.A+="A"
+				}
+			},
+			getters: {
+				Aget (state, getters, rootState, rootGetters) {//{ state, commit, rootState,rootGetters }rootState rootGetters全局的
+					console.log("rootGetters",rootGetters)
+					return state.A+"get"
+				}
+			},
+			actions: {
+				someAction: {//在命名空间内注册全局action
+				root: true,
+				handler (namespacedContext, payload) {} // -> 'someAction'
+				}
+      		}
+		}
+		let moduleB={
+			state:{
+				B:"B"
+			}
+		}
+		const store = new Vuex.Store({
+			state: {
+				count: 123,
+				todos:[{ id: 1, text: '...', done: true }]
+			},
+			mutations: {
+				increment(state) {
+					return new Promise((resolve, reject) => {
+						setTimeout(() => {
+							state.count++
+							resolve()
+						}, 1000)
+					})
+				},
+				increment2(state,payload) {//参数方式 又称载荷
+					state.count=payload.amount
+				}
+			},
+			getters: {
+				doneTodos: state => {
+					return state.todos.filter(todo => todo.done)
+				},
+				getTodoById: (state) => (id) => {
+					return id
+				}
+			},
+			actions: {//异步  通过store.dispatch('increment')触发
+				increment (context) {//参数是一个context对象
+					console.log(context)
+					context.commit('increment')
+				},
+				incrementAsync ({ commit }) {
+					return new Promise((resolve, reject) => {
+						setTimeout(() => {
+							commit('increment')
+							resolve()
+						}, 1000)
+					})
+					
+				}
+			},
+			modules: {
+				A: moduleA,
+				B: moduleB
+			}
+		})
+
+		let mapState = Vuex.mapState;
+		let mapGetters = Vuex.mapGetters;
+		let mapActions = Vuex.mapActions;
+		 
+		let v = new Vue({
+			store,
+			el: "#app",
+			data: {
+				mas: "123"
+			},
+			computed: {//设置mapState的两种方式
+				...mapState(
+					// {//对象的三种设置方式
+					//     // name1:state => state.count,
+					//     // name2: 'count',
+
+					//     // name3 (state) {
+					//     // return state.count + 1
+					//     // }
+					// },
+					["count"]
+				),
+				// ...mapState('A', {带命名空间的绑定
+				// 	a: state => state.a,
+				// 	b: state => state.b
+				// }),
+				doneTodos(){
+					return this.$store.getters.doneTodos
+				},
+				A(){
+					console.log(this.$store.state)
+					return this.$store.state.A//和普通的state一样使用
+				},
+				Aget(){
+					console.log(this.$store.state)
+					return this.$store.getters["A/Aget"]//和普通的state一样使用//有命名空间的模块A模块 Aget
+				}
+			},
+			methods: {
+				increment() {
+					// this.$store.commit("increment")
+					// console.log("运行increment")
+					// this.$store.dispatch("incrementAsync").then(() => {
+					// 	// ...
+					// 	console.log("异步increment执行完毕")
+					// })
+					// console.log("运行异步increment")
+					// this.$store.dispatch('increment')
+					// console.log("运行异步increment")
+					this.$store.commit("A/A")//A模块的A
+				},
+				increment2() {
+					this.$store.commit({//整个对象传参过去
+						type:"increment2",
+						amount: 10
+					})
+					console.log("运行increment2")
+				},
+				getTodoById(id){
+					return this.$store.getters.getTodoById(id)
+				},
+			}
+
+		})
+		console.log(v)
+	</script>
+</body>
+
+</html>
